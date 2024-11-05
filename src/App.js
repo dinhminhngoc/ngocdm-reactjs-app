@@ -73,6 +73,8 @@ export default function App() {
     }
   };
 
+  console.log("test app");
+
   // Close sidenav when mouse leave mini sidenav
   const handleOnMouseLeave = () => {
     if (onMouseEnter) {
