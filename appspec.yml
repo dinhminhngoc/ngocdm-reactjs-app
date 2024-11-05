@@ -3,3 +3,12 @@ os: linux
 files:
   - source: /build
     destination: /var/www/html/tsc_app/
+ooks:
+  BeforeInstall:
+    - location: scripts/before_install
+      timeout: 300
+      runas: root
+  ApplicationStop:
+    - location: scripts/application_stop
+      timeout: 300
+      runas: root
