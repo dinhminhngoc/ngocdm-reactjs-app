@@ -27,23 +27,23 @@ jobs:
       - name: Compress build folder
         run: tar -czf build.tar.gz build
 
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOST }}
+
       - name: Deploy to EC2
         env:
           AWS_EC2_IP: ${{ secrets.AWS_EC2_IP }}
           EC2_USER: ${{ secrets.EC2_USER }}
           DESTINATION_PATH: ${{ secrets.DESTINATION_PATH }}
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ssh_key
-          chmod 600 ssh_key
-
-          # Copy build archive to EC2
-          scp -i ssh_key -o StrictHostKeyChecking=no build.tar.gz ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }}:${{ env.DESTINATION_PATH }}
-
-          # Connect to EC2 and deploy
-          ssh -i ssh_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }} << 'EOF'
+          scp build.tar.gz ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }}:${{ env.DESTINATION_PATH }}
+          ssh ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }} << 'EOF'
             cd ${{ env.DESTINATION_PATH }}
             tar -xzf build.tar.gz
             rm build.tar.gz
-            # Optional: Restart services if needed, e.g., pm2, nginx, apache
+            sudo chown -R www-data:www-data ${{ env.DESTINATION_PATH }}
             echo "Deployment complete!"
           EOF
