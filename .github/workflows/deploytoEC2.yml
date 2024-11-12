@@ -33,3 +33,13 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.DESTINATION_PATH }}
+      - name: Run remote SSH commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo rm -rf /var/www/html/tsc_app/*
+            sudo mv ${{ secrets.TARGET_DIR }}/* /var/www/html/tsc_app
+
