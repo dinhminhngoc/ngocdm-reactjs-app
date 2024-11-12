@@ -41,5 +41,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo rm -rf /var/www/html/tsc_app/*
-            sudo mv ${{ secrets.TARGET_DIR }}/* /var/www/html/tsc_app
+            sudo mv ${{ secrets.DESTINATION_PATH }}/* /var/www/html/tsc_app
 
