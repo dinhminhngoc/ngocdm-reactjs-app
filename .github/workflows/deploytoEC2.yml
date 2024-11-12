@@ -24,26 +24,22 @@ jobs:
       - name: Build React app
         run: CI=false npm run build
 
-      - name: Compress build folder
-        run: tar -czf build.tar.gz build
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.KNOWN_HOST }}
-
-      - name: Deploy to EC2
+      - name: Copy build folder to EC2
+        uses: easingthemes/ssh-deploy@v2.1.5
         env:
-          AWS_EC2_IP: ${{ secrets.AWS_EC2_IP }}
-          EC2_USER: ${{ secrets.EC2_USER }}
-          DESTINATION_PATH: ${{ secrets.DESTINATION_PATH }}
-        run: |
-          scp build.tar.gz ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }}:${{ env.DESTINATION_PATH }}
-          ssh ${{ env.EC2_USER }}@${{ env.AWS_EC2_IP }} << 'EOF'
-            cd ${{ env.DESTINATION_PATH }}
-            tar -xzf build.tar.gz
-            rm build.tar.gz
-            sudo chown -R www-data:www-data ${{ env.DESTINATION_PATH }}
-            echo "Deployment complete!"
-          EOF
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-r"
+          SOURCE: "build/"
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.DESTINATION_PATH }}
+
+      - name: Run remote SSH commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo rm -rf /var/www/html/* # Clear existing files
+            sudo mv ${{ secrets.TARGET_DIR }}/* /var/www/html
